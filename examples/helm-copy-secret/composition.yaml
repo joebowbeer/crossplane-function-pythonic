@@ -1,0 +1,30 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: argocds.pythonic.fortra.com
+spec:
+  compositeTypeRef:
+    apiVersion: pythonic.fortra.com/v1alpha1
+    kind: ArgoCD
+  mode: Pipeline
+  pipeline:
+  - step: pythonic
+    functionRef:
+      name: function-pythonic
+    input:
+      apiVersion: pythonic.fn.fortra.com/v1alpha1
+      kind: Composite
+      composite: |
+        class Composite(BaseComposite):
+          def compose(self):
+            argocd = self.resources.Release('helm.crossplane.io/v1beta1', 'Release')
+            argocd.externalName('argocd')
+            argocd.spec.forProvider.namespace = 'argocd'
+            argocd.spec.forProvider.chart.repository = 'https://argoproj.github.io/argo-helm'
+            argocd.spec.forProvider.chart.name = 'argo-cd'
+            argocd.spec.forProvider.chart.version = '8.0.7'
+
+            # This will work once crossplane-sdk-python is updated to the V2 function api
+            #secret = self.requireds.Secret('v1', 'Secret', 'argocd', 'argocd-secret')[0]
+            secret = self.requireds.Secret('v1', 'Secret', labels={'app.kubernetes.io/name':'argocd-secret'})[0]
+            self.resources.Secret('v1', 'Secret', 'default', 'argocd-secret').data = secret.data
