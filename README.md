@@ -8,7 +8,6 @@ example is doing:
 
 * Create an MR named 'vpc' with apiVersion 'ec2.aws.crossplane.io/v1beta1' and kind 'VPC'
 * Set the vpc region and cidr from the XR spec values
-* Return if the vpc's vpcId is not yet assigned to it
 * Set the XR status.vpcId to the created vpc id
 
 ```yaml
@@ -37,27 +36,12 @@ spec:
             self.status.vpcId = vpc.status.atProvider.vpcId
 ```
 
-## Single use Composites
-
-function-pythonic configures a `Composite` CompositeResourceDefinition that enables
-single purpose Composites. A common use case is a one time initialization task.
-```yaml
-apiVersion: pythonic.fortra.com/v1alpha1
-kind: Composite
-metadata:
-  name: composite-example
-spec:
-  composite: |
-    class Composite(BaseComposite):
-      def compose(self):
-        self.status.composite = 'Hello, World!'
-```
-
 ## Examples
 
-In the [examples](./examples) directory are most of the function-go-templating examples
-implemented using function-pythonic. In addition, the [eks-cluster](./examples/eks-cluster/composition.yaml)
-example is a complex example composing many resources.
+In the [examples](./examples) directory are many exemples, including all of the
+function-go-templating examples implemented using function-pythonic.
+The [eks-cluster](./examples/eks-cluster/composition.yaml) example is a good
+complex example creating the entire vpc structure needed for an EKS cluster.
 
 ## Managed Resource Dependencies
 
@@ -252,6 +236,25 @@ Each resource in the list is the following RequiredResource class:
 | RequiredResource.data | The required resource data |
 | RequiredResource.status | The required resource status |
 | RequiredResource.conditions | The required resource conditions |
+
+## Single use Composites
+
+Tired of creating a CompositeResourceDefinition, a Composition, and a Composite
+just to run that Composition once in a single use or initialize task?
+
+function-pythonic installs a `Composite` CompositeResourceDefinition that enables
+creating such tasks using a single Composite resource:
+```yaml
+apiVersion: pythonic.fortra.com/v1alpha1
+kind: Composite
+metadata:
+  name: composite-example
+spec:
+  composite: |
+    class Composite(BaseComposite):
+      def compose(self):
+        self.status.composite = 'Hello, World!'
+```
 
 ## Installing Python Packages
 

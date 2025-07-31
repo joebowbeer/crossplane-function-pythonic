@@ -131,6 +131,9 @@ jobs:
   # XPKG_ACCESS_ID and XPKG_TOKEN secrets were provided.
   push:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
     needs:
       - build
     steps:
