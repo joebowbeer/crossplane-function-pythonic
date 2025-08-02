@@ -9,8 +9,8 @@
             "moby": "false"
         },
         "ghcr.io/joebowbeer/devcontainers-features/crossplane:1": {
-            "channel": "stable",
-            "version": "current"
+            "channel": "master",
+            "version": "v2.0.0-rc.0.375.g1b08fd7f8"
         }
     },
     "postCreateCommand": "hatch env create"
