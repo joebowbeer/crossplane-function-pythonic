@@ -70,14 +70,14 @@ jobs:
     - name: Run Unit Tests
       run: hatch run test:ci
 
-    - name: Pytest coverage comment
-      uses: MishaKav/pytest-coverage-comment@v1.1.54
-      with:
-        badge-title: Coverage
-        title: Coverage Report
-        pytest-xml-coverage-path: reports/pytest-coverage.xml
-        junitxml-title: Unit Tests
-        junitxml-path: reports/pytest-junit.xml
+    #- name: Pytest coverage comment
+    #  uses: MishaKav/pytest-coverage-comment@v1.1.54
+    #  with:
+    #    badge-title: Coverage
+    #    title: Coverage Report
+    #    pytest-xml-coverage-path: reports/pytest-coverage.xml
+    #    junitxml-title: Unit Tests
+    #    junitxml-path: reports/pytest-junit.xml
         #hide-badge: false
         #hide-report: false
         #create-new-comment: false

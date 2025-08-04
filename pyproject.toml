@@ -65,7 +65,7 @@ dependencies = [
 [tool.hatch.envs.test.scripts]
 all = "pytest tests/ --verbose --verbose --cov --cov-report=term --cov-report=html:reports"
 protobuf = "pytest tests/test_protobuf*.py --verbose --verbose --cov --cov-report=term --cov-report=html:reports"
-ci = "pytest tests --junitxml=reports/pytest-junit.xml --cov --cov-report=xml:reports/pytest-coverage.xml"
+ci = "pytest tests --verbose --verbose --junitxml=reports/pytest-junit.xml --cov --cov-report=term --cov-report=xml:reports/pytest-coverage.xml"
 
 [tool.ruff]
 target-version = "py311"
