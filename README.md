@@ -43,6 +43,17 @@ function-go-templating examples implemented using function-pythonic.
 The [eks-cluster](./examples/eks-cluster/composition.yaml) example is a good
 complex example creating the entire vpc structure needed for an EKS cluster.
 
+## Installing function-pythonic
+
+```yaml
+apiVersion: pkg.crossplane.io/v1
+kind: Function
+metadata:
+  name: function-pythonic
+spec:
+  package: ghcr.io/fortra/function-pythonic:v0.0.3
+```
+
 ## Managed Resource Dependencies
 
 function-pythonic automatically handles dependencies between managed resources.
@@ -117,8 +128,8 @@ The following functions are provided to create Protobuf structures:
 | Unknown | Create a new Protobuf unknown placeholder |
 | Yaml | Create a new Protobuf structure from a yaml string |
 | Json | Create a new Protobuf structure from a json string |
-| Base64Encode | Encode a string into base 64 |
-| Base64Decode | Decode a string from base 64 |
+| B64Encode | Encode a string into base 64 |
+| B64Decode | Decode a string from base 64 |
 
 The following items are supported in all the Protobuf Message wrapper classes: `bool`,
 `len`, `contains`, `iter`, `hash`, `==`, `str`, `format`
@@ -259,10 +270,10 @@ spec:
         self.status.composite = 'Hello, World!'
 ```
 
-## Installing Python Packages
+## Install Additional Python Packages
 
 function-pythonic supports a `--pip-install` command line option which will run pip install
-with the configured pip install command. For example, the following DeploymentRuntimeConfig:
+with the configured pip install command. For example:
 ```yaml
 apiVersion: pkg.crossplane.io/v1beta1
 kind: DeploymentRuntimeConfig
@@ -279,4 +290,28 @@ spec:
             - --debug
             - --pip-install
             - --quiet aiobotocore==2.23.2
+```
+
+## Enable Oversize Protos
+
+The Protobuf python package used by function-pythonic limits the depth of yaml
+elements and the total size of yaml parsed. This results in a limit of approximately
+30 levels of nested yaml fields. This check can be disabled using the `--allow-oversize-protos`
+command line option. For example:
+
+```yaml
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: function-pythonic
+spec:
+  deploymentTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: package-runtime
+            args:
+            - --debug
+            - --allow-oversize-protos
 ```

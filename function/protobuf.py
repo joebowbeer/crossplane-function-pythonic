@@ -224,6 +224,8 @@ class MapMessage:
                     value = RepeatedMessage(self, key, self._field.message_type, value, self._readOnly)
             else:
                 value = Message(self, key, self._field.message_type, value, self._readOnly)
+        elif self._field.type == self._field.TYPE_BYTES and isinstance(value, bytes):
+            value = value.decode('utf-8')
         self._cache[key] = value
         return value
 
@@ -308,8 +310,8 @@ class MapMessage:
             self._messages = self._parent._create_child(self._key)
         if isinstance(message, Message):
             message = message._message
-        if isinstance(message, str) and self._field.type == self._field.TYPE_BYTES:
-            message = message.encode()
+        if self._field.type == self._field.TYPE_BYTES and isinstance(message, str):
+            message = message.encode('utf-8')
         self._messages[key] = message
         self._cache.pop(key, None)
 

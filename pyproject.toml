@@ -44,7 +44,7 @@ type = "virtual"
 path = ".venv-default"
 dependencies = ["ipython==9.1.0"]
 [tool.hatch.envs.default.scripts]
-development = "python function/main.py --insecure --debug"
+development = "python function/main.py --insecure --debug --allow-oversize-protos"
 
 [tool.hatch.envs.lint]
 type = "virtual"

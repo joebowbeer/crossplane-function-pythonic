@@ -38,12 +38,22 @@ def main():
         '--pip-install',
         help='Pip install command to install additional Python packages.'
     )
+    parser.add_argument(
+        '--allow-oversize-protos',
+        action='store_true',
+        help='Allow oversized protobuf messages'
+    )
     args = parser.parse_args()
     if not args.tls_certs_dir:
         args.tls_certs_dir = os.getenv('TLS_SERVER_CERTS_DIR')
 
     if args.pip_install:
         pip._internal.cli.main.main(['install', *shlex.split(args.pip_install)])
+
+    if args.allow_oversize_protos:
+        from google.protobuf.internal import api_implementation
+        if api_implementation._c_module:
+            api_implementation._c_module.SetAllowOversizeProtos(True)
 
     logging.configure(logging.Level.DEBUG if args.debug else logging.Level.INFO)
     runtime.serve(
