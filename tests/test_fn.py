@@ -47,6 +47,14 @@ async def test_run_function(fn_case):
         },
         'context': {},
         'desired': {},
+        'conditions': [
+            {
+                'type': 'NoUnknowns',
+                'status': 2,
+                'reason': 'AllResolved',
+                'message': 'All Resoures are resolved',
+            },
+        ],
     })
 
     response = utils.message_dict(

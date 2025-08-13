@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-helm upgrade --install crossplane --namespace crossplane-system --create-namespace crossplane-preview/crossplane --version v2.0.0-preview.1
+helm upgrade --install crossplane --namespace crossplane-system --create-namespace crossplane-preview/crossplane --version v2.0.1
 
 kubectl apply -f - <<EOF
 apiVersion: pkg.crossplane.io/v1beta1
@@ -84,15 +84,13 @@ spec:
     source: InjectedIdentity
 EOF
 
-#  package: ghcr.io/fortra/function-pythonic:v0.0.3
-
 kubectl apply -f - <<EOF
 apiVersion: pkg.crossplane.io/v1
 kind: Function
 metadata:
   name: function-pythonic
 spec:
-  package: ghcr.io/iciclespider/function-pythonic:v0.0.0-20250811193238-f8d5c82deb9b
+  package: ghcr.io/fortra/function-pythonic:v0.0.5
   runtimeConfigRef:
     apiVersion: pkg.crossplane.io/v1beta1
     kind: DeploymentRuntimeConfig

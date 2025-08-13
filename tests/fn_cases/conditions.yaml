@@ -83,3 +83,7 @@ response:
     reason: Ready
     message: Database is ready
     status: 2
+  - type: NoUnknowns
+    status: 2
+    reason: AllResolved
+    message: All Resoures are resolved
