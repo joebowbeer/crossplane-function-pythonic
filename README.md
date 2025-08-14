@@ -170,35 +170,35 @@ class Composite(BaseComposite):
 
 The BaseComposite class provides the following fields for manipulating the Composite itself:
 
-| Field | Description |
-| ----- | ----------- |
-| self.observed | Low level direct access to the observed composite |
-| self.desired | Low level direct access to the desired composite |
-| self.apiVersion | The composite observed apiVersion |
-| self.kind | The composite observed kind |
-| self.metadata | The composite observed metadata |
-| self.spec | The composite observed spec |
-| self.status | The composite desired and observed status, read from observed if not in desired |
-| self.conditions | The composite desired and observed conditions, read from observed if not in desired |
-| self.connection | The composite desired and observed connection detials, read from observed if not in desired |
-| self.ready | The composite desired ready state |
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| self.observed | Map | Low level direct access to the observed composite |
+| self.desired | Map | Low level direct access to the desired composite |
+| self.apiVersion | String | The composite observed apiVersion |
+| self.kind | String | The composite observed kind |
+| self.metadata | Map | The composite observed metadata |
+| self.spec | Map | The composite observed spec |
+| self.status | Map | The composite desired and observed status, read from observed if not in desired |
+| self.conditions | Conditions | The composite desired and observed conditions, read from observed if not in desired |
+| self.connection | Connection | The composite desired and observed connection detials, read from observed if not in desired |
+| self.results | Results | Returned results on the Composite and optionally on the Claim |
+| self.ready | Boolean | The composite desired ready state |
 
 The BaseComposite also provides access to the following Crossplane Function level features:
 
-| Field | Description |
-| ----- | ----------- |
-| self.request | Low level direct access to the RunFunctionRequest message |
-| self.response | Low level direct access to the RunFunctionResponse message |
-| self.logger | Python logger to log messages to the running function stdout |
-| self.ttl | Get or set the response TTL, in seconds |
-| self.credentials | The request credentials |
-| self.context | The response context, initialized from the request context |
-| self.environment | The response environment, initialized from the request context environment |
-| self.requireds | Request and read additional local Kubernetes resources |
-| self.resources | Define and process composed resources |
-| self.results | Returned results on the Composite and optionally on the Claim |
-| self.unknownsFatal | Terminate the composition if already created resources are assigned unknown values, default True |
-| self.autoReady | Perform auto ready processing after the compose method returns, default True |
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| self.request | Message | Low level direct access to the RunFunctionRequest message |
+| self.response | Message | Low level direct access to the RunFunctionResponse message |
+| self.logger | Logger | Python logger to log messages to the running function stdout |
+| self.ttl | Integer | Get or set the response TTL, in seconds |
+| self.credentials | Credentials | The request credentials |
+| self.context | Map | The response context, initialized from the request context |
+| self.environment | Map | The response environment, initialized from the request context environment |
+| self.requireds | Requireds | Request and read additional local Kubernetes resources |
+| self.resources | Resources | Define and process composed resources |
+| self.unknownsFatal | Boolean | Terminate the composition if already created resources are assigned unknown values, default True |
+| self.autoReady | Boolean | Perform auto ready processing on all composed resources, default True |
 
 ### Composed Resources
 
@@ -207,23 +207,24 @@ Creating and accessing composed resources is performed using the `BaseComposite.
 resource name. The value returned when getting a resource from BaseComposite is the following
 Resource class:
 
-| Field | Description |
-| ----- | ----------- |
-| Resource(apiVersion,kind,namespace,name) | Reset the resource and set the optional parameters |
-| Resource.name | The composition resource name of the composed resource |
-| Resource.observed | Low level direct access to the observed composed resource |
-| Resource.desired | Low level direct access to the desired composed resource |
-| Resource.apiVersion | The composed resource apiVersion |
-| Resource.kind | The composed resource kind |
-| Resource.externalName | The composed resource external name |
-| Resource.metadata | The composed resource desired metadata |
-| Resource.spec | The resource spec |
-| Resource.data | The resource data |
-| Resource.status | The resource status |
-| Resource.conditions | The resource conditions |
-| Resource.connection | The resource connection details |
-| Resource.ready | The resource ready state |
-| Resource.unknownsFatal | Terminate the composition if this resource has been created and is assigned unknown values, default is Composite.unknownsFatal |
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| Resource(apiVersion,kind,namespace,name) | Resource | Reset the resource and set the optional parameters |
+| Resource.name | String | The composition composed resource name |
+| Resource.observed | Map | Low level direct access to the observed composed resource |
+| Resource.desired | Map | Low level direct access to the desired composed resource |
+| Resource.apiVersion | String | The composed resource apiVersion |
+| Resource.kind | String | The composed resource kind |
+| Resource.externalName | String | The composed resource external name |
+| Resource.metadata | Map | The composed resource desired metadata |
+| Resource.spec | Map | The resource spec |
+| Resource.data | Map | The resource data |
+| Resource.status | Map | The resource status |
+| Resource.conditions | Conditions | The resource conditions |
+| Resource.connection | Connection | The resource connection details |
+| Resource.ready | Boolean | The resource ready state |
+| Resource.unknownsFatal | Boolean | Terminate the composition if this resource has been created and is assigned unknown values, default is Composite.unknownsFatal |
+| Resource.autoReady | Boolean | Perform auto ready processing on this resource, default is Composite.autoReady |
 
 ### Required Resources (AKA Extra Resources)
 
@@ -232,15 +233,15 @@ Creating and accessing required resources is performed using the `BaseComposite.
 resource name. The value returned when getting a required resource from BaseComposite is the
 following RequiredResources class:
 
-| Field | Description |
-| ----- | ----------- |
-| RequiredResource(apiVersion,kind,namespace,name,labels) | Reset the required resource and set the optional parameters |
-| RequiredResources.name | The required resources name |
-| RequiredResources.apiVersion | The required resources apiVersion |
-| RequiredResources.kind | The required resources kind |
-| RequiredResources.namespace | The namespace to match when returning the required resources, see note below |
-| RequiredResources.matchName | The names to match when returning the required resources |
-| RequiredResources.matchLabels | The labels to match when returning the required resources |
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| RequiredResource(apiVersion,kind,namespace,name,labels) | RequiredResource | Reset the required resource and set the optional parameters |
+| RequiredResources.name | String | The required resources name |
+| RequiredResources.apiVersion | String | The required resources apiVersion |
+| RequiredResources.kind | String | The required resources kind |
+| RequiredResources.namespace | String | The namespace to match when returning the required resources, see note below |
+| RequiredResources.matchName | String | The names to match when returning the required resources |
+| RequiredResources.matchLabels | Map | The labels to match when returning the required resources |
 
 The current version of crossplane-sdk-python used by function-pythonic does not support namespace
 selection. For now, use matchLabels and filter the results if required.
@@ -252,6 +253,23 @@ Each resource in the list is the following RequiredResource class:
 | ----- | ----------- |
 | RequiredResource.name | The required resource name |
 | RequiredResource.observed | Low level direct access to the observed required resource |
+| RequiredResource.apiVersion | The required resource apiVersion |
+| RequiredResource.kind | The required resource kind |
+| RequiredResource.metadata | The required resource metadata |
+| RequiredResource.spec | The required resource spec |
+| RequiredResource.data | The required resource data |
+| RequiredResource.status | The required resource status |
+| RequiredResource.conditions | The required resource conditions |
+
+### Conditions
+
+The `conditions` field is a map of the resource's status conditions array, with
+the map key being the condition type.
+
+| Field | Description |
+| ----- | ----------- |
+| Condition.type | The condtion type |
+| Condition.status | RequiredResource.observed | Low level direct access to the observed required resource |
 | RequiredResource.apiVersion | The required resource apiVersion |
 | RequiredResource.kind | The required resource kind |
 | RequiredResource.metadata | The required resource metadata |

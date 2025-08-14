@@ -152,28 +152,28 @@ class FunctionRunner(grpcv1.FunctionRunnerService):
                     del composite.resources[name]
         if fatalResources:
             if not self.debug:
-                logger.error('Observed Resources with unknowns', resources=fatalResources)
-            message = f"Observed Resources with unknowns: {','.join(fatalResources)}"
+                logger.error('Observed resources with unknowns', resources=fatalResources)
+            message = f"Observed resources with unknowns: {','.join(fatalResources)}"
             composite.conditions.NoUnknowns(False, 'FatalUnknowns', message)
             composite.results.fatal(message, 'FatalUnknowns')
             return response
         if warningResources:
             if not self.debug:
-                logger.warning('Observed Resources with unknowns', resources=fatalResources)
-            message = f"Observed Resources with unknowns: {','.join(warningResources)}"
+                logger.warning('Observed resources with unknowns', resources=fatalResources)
+            message = f"Observed resources with unknowns: {','.join(warningResources)}"
             composite.conditions.NoUnknowns(False, 'ObservedUnknowns', message)
             composite.results.warning(message, 'ObservedUnknowns')
         elif unknownResources:
             if not self.debug:
-                logger.info('New Resources with unknowns', resources=unknownResources)
-            message = f"New Resources with unknowns: {','.join(unknownResources)}"
+                logger.info('New resources with unknowns', resources=unknownResources)
+            message = f"New resources with unknowns: {','.join(unknownResources)}"
             composite.conditions.NoUnknowns(False, 'NewUnknowns', message)
             composite.results.info(message, 'NewUnknowns')
         else:
-            composite.conditions.NoUnknowns(True, 'AllResolved', 'All Resoures are resolved')
+            composite.conditions.NoUnknowns(True, 'AllResolved', 'All resources are resolved')
 
-        if composite.autoReady:
-            for name, resource in composite.resources:
+        for name, resource in composite.resources:
+            if resource.autoReady or (resource.autoReady is None and composite.autoReady):
                 if resource.ready is None:
                     if resource.conditions.Ready.status:
                         resource.ready = True

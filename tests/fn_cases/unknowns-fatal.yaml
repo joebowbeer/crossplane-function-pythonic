@@ -65,8 +65,8 @@ response:
   - type: NoUnknowns
     status: 3
     reason: FatalUnknowns
-    message: 'Observed Resources with unknowns: flexServerConfig'
+    message: 'Observed resources with unknowns: flexServerConfig'
   results:
-  - message: 'Observed Resources with unknowns: flexServerConfig'
+  - message: 'Observed resources with unknowns: flexServerConfig'
     reason: FatalUnknowns
     severity: 1

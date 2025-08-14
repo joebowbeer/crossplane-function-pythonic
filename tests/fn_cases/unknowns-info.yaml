@@ -48,8 +48,8 @@ response:
   - type: NoUnknowns
     status: 3
     reason: NewUnknowns
-    message: 'New Resources with unknowns: flexServerConfig'
+    message: 'New resources with unknowns: flexServerConfig'
   results:
-  - message: 'New Resources with unknowns: flexServerConfig'
+  - message: 'New resources with unknowns: flexServerConfig'
     reason: NewUnknowns
     severity: 3

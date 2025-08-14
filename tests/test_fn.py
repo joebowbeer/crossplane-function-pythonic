@@ -52,7 +52,7 @@ async def test_run_function(fn_case):
                 'type': 'NoUnknowns',
                 'status': 2,
                 'reason': 'AllResolved',
-                'message': 'All Resoures are resolved',
+                'message': 'All resources are resolved',
             },
         ],
     })
