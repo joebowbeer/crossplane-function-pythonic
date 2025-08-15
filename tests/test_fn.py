@@ -1,7 +1,4 @@
 
-import warnings
-warnings.filterwarnings('ignore', module='^google[.]protobuf[.]runtime_version$', lineno=98)
-
 import pathlib
 import pytest
 from crossplane.function.proto.v1 import run_function_pb2 as fnv1
@@ -45,17 +42,31 @@ async def test_run_function(fn_case):
                 'seconds': 60,
             },
         },
-        'context': {},
+        'context': {
+            'iteration': 1,
+        },
         'desired': {},
-        'conditions': [
-            {
-                'type': 'NoUnknowns',
-                'status': 2,
-                'reason': 'AllResolved',
-                'message': 'All resources are resolved',
-            },
-        ],
     })
+    add = True
+    if 'conditions' in test['response']:
+        if test['response']['conditions'] is None:
+            del test['response']['conditions']
+            add = False
+        else:
+            for condition in test['response']['conditions']:
+                if condition.get('type', None) == 'ResourcesComposed':
+                    add = False
+    else:
+        test['response']['conditions'] = []
+    if add:
+        test['response']['conditions'].append(
+            {
+                'type': 'ResourcesComposed',
+                'status': 2,
+                'reason': 'AllComposed',
+                'message': 'All resources are composed',
+            }
+        )
 
     response = utils.message_dict(
         await function.FunctionRunner().RunFunction(request, None)

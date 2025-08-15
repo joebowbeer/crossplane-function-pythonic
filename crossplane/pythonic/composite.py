@@ -32,7 +32,7 @@ class BaseComposite:
         self.status = Status(self.observed.status, self.desired.status)
         self.conditions = Conditions(observed, self.response)
         self.connection = Connection(observed, desired)
-        self.results = Results(self.response)
+        self.events = Events(self.response)
 
     @property
     def ttl(self):
@@ -235,6 +235,33 @@ class Requireds:
     def __getitem__(self, key):
         return RequiredResources(self._composite, key)
 
+    def __bool__(self):
+        return bool(len(self))
+
+    def __len__(self):
+        names = set()
+        for name, resource in self._composite.request.extra_resources:
+            names.add(name)
+        for name, resource in self._composite.response.requirements.extra_resources:
+            names.add(name)
+        return len(names)
+
+    def __contains__(self, key):
+        if key in self._composite.request.extra_resources:
+            return True
+        if key in self._composite.response.desired.resources:
+            return True
+        return False
+
+    def __iter__(self):
+        names = set()
+        for name, resource in self._composite.request.extra_resources:
+            names.add(name)
+        for name, resource in self._composite.response.requirements.extra_resources:
+            names.add(name)
+        for name in sorted(names):
+            yield name, self[name]
+
 
 class RequiredResources:
     def __init__(self, composite, name):
@@ -384,14 +411,14 @@ class Condition(protobuf.ProtobufValue):
             value['lastTransitionTime'] = time.isoformat().replace('+00:00', 'Z')
         return value
 
-    def __call__(self, status=_notset, reason=_notset, message=_notset, claim=_notset):
+    def __call__(self, reason=_notset, message=_notset, status=_notset, claim=_notset):
         self._find_condition(True)
-        if status != _notset:
-            self.status = status
         if reason != _notset:
             self.reason = reason
         if message != _notset:
             self.message = message
+        if status != _notset:
+            self.status = status
         if claim != _notset:
             self.claim = claim
         return self
@@ -514,39 +541,42 @@ class Connection:
         self._desired.connection_details[key] = value
 
 
-class Results:
+class Events:
     def __init__(self, response):
         self._results = response.results
 
-    def info(self, message, reason=_notset, claim=_notset):
-        result = Result(self._results.append())
-        result.info = True
-        result.message = message
+    def info(self, reason=_notset, message=_notset, claim=_notset):
+        event = Event(self._results.append())
+        event.info = True
         if reason != _notset:
-            result.reason = reason
+            event.reason = reason
+        if message != _notset:
+            event.message = message
         if claim != _notset:
-            result.claim = claim
-        return result
+            event.claim = claim
+        return event
 
-    def warning(self, message, reason=_notset, claim=_notset):
-        result = Result(self._results.append())
-        result.warning = True
-        result.message = message
+    def warning(self, reason=_notset, message=_notset, claim=_notset):
+        event = Event(self._results.append())
+        event.warning = True
         if reason != _notset:
-            result.reason = reason
+            event.reason = reason
+        if message != _notset:
+            event.message = message
         if claim != _notset:
-            result.claim = claim
-        return result
+            event.claim = claim
+        return event
 
-    def fatal(self, message, reason=_notset, claim=_notset):
-        result = Result(self._results.append())
-        result.fatal = True
-        result.message = message
+    def fatal(self, reason=_notset, message=_notset, claim=_notset):
+        event = Event(self._results.append())
+        event.fatal = True
         if reason != _notset:
-            result.reason = reason
+            event.reason = reason
+        if message != _notset:
+            event.message = message
         if claim != _notset:
-            result.claim = claim
-        return result
+            event.claim = claim
+        return event
 
     def __bool__(self):
         return len(self) > 0
@@ -556,15 +586,15 @@ class Results:
 
     def __getitem__(self, key):
         if key >= len(self._results):
-            return Result()
-        return Result(self._results[ix])
+            return Event()
+        return Event(self._results[ix])
 
     def __iter__(self):
         for ix in range(len(self._results)):
             yield self[ix]
 
 
-class Result:
+class Event:
     def __init__(self, result=None):
         self._result = result
 

@@ -11,6 +11,13 @@ def test_map():
     value.c = 3
     assert len(value) == 3
     assert value.c == 3
+    value = protobuf.Map()
+    assert not value
+    assert len(value) == 0
+    value['a'] = 1
+    assert value
+    assert len(value) == 1
+    assert value.a == 1
 
 def test_list():
     value = protobuf.List(1, 2)
@@ -20,6 +27,13 @@ def test_list():
     value[2] = 3
     assert len(value) == 3
     assert value[2] == 3
+    value = protobuf.List()
+    assert not value
+    assert len(value) == 0
+    value[0] = 1
+    assert value
+    assert len(value) == 1
+    assert value[0] == 1
 
 def test_unkown():
     value = protobuf.Unknown()

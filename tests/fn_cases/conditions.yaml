@@ -31,9 +31,9 @@ request:
           self.status.pipeline = self.resources.project.conditions.Ready
           self.status.nonResource = self.resources.whatever.conditions.Ready
 
-          self.conditions.TestCondition(False, 'InstallFail', 'failed to install')
-          self.conditions.ConditionTrue(True, 'TrueCondition', 'we are true', True)
-          self.conditions.DatabaseReady(True, 'Ready', 'Database is ready')
+          self.conditions.TestCondition('InstallFail', 'failed to install', False)
+          self.conditions.ConditionTrue('TrueCondition', 'we are true', True, True)
+          self.conditions.DatabaseReady('Ready', 'Database is ready', True)
 
 response:
   desired:
@@ -83,7 +83,3 @@ response:
     reason: Ready
     message: Database is ready
     status: 2
-  - type: NoUnknowns
-    status: 2
-    reason: AllResolved
-    message: All resources are resolved

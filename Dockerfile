@@ -1,43 +1,21 @@
-# syntax=docker/dockerfile:1
+FROM python:3.13-slim-trixie AS image
 
-# It's important that this is Debian 12 to match the distroless image.
-FROM debian:12-slim AS build
-
-#RUN --mount=type=cache,target=/var/lib/apt/lists \
-#    --mount=type=cache,target=/var/cache/apt \
-RUN \
-    rm -f /etc/apt/apt.conf.d/docker-clean \
-    && apt-get update \
-    && apt-get install --no-install-recommends --yes python3-venv git
-
-# Don't write .pyc bytecode files. These speed up imports when the program is
-# loaded. There's no point doing that in a container where they'll never be
-# persisted across restarts.
-ENV PYTHONDONTWRITEBYTECODE=true
-
-# Use Hatch to build a wheel. The build stage must do this in a venv because
-# Debian doesn't have a hatch package, and it won't let you install one globally
-# using pip.
-WORKDIR /build
-#RUN --mount=target=. \
-#    --mount=type=cache,target=/root/.cache/pip \
-COPY . /build
-RUN \
-    python3 -m venv /venv/build \
-    && /venv/build/bin/pip install hatch \
-    && /venv/build/bin/hatch build -t wheel /whl
-
-# Create a fresh venv and install only the pythonic wheel into it.
-#RUN --mount=type=cache,target=/root/.cache/pip \
-RUN \
-    python3 -m venv /venv/fn \
-    && /venv/fn/bin/pip install /whl/*.whl
-
-# Copy the pythonic venv to our runtime stage. It's important that the path be
-# the same as in the build stage, to avoid shebang paths and symlinks breaking. 
-FROM gcr.io/distroless/python3-debian12 AS image
+WORKDIR /root/pythonic
+COPY pyproject.toml /root/pythonic
+COPY crossplane /root/pythonic/crossplane
 WORKDIR /
-USER nonroot:nonroot
-COPY --from=build --chown=nonroot:nonroot /venv/fn /venv/fn
+RUN \
+  set -eux && \
+  cd /root/pythonic && \
+  pip install --root-user-action ignore --no-build-isolation setuptools==80.9.0 && \
+  pip install --root-user-action ignore --no-build-isolation . && \
+  pip uninstall --root-user-action ignore --yes setuptools && \
+  cd .. && \
+  rm -rf .cache pythonic && \
+  groupadd --gid 2000 pythonic && \
+  useradd --uid 2000 --gid pythonic --home-dir /opt/pythonic --create-home --shell /usr/sbin/nologin pythonic
+
+USER pythonic:pythonic
+WORKDIR /opt/pythonic
 EXPOSE 9443
-ENTRYPOINT ["/venv/fn/bin/pythonic"]
+ENTRYPOINT ["python", "-m", "crossplane.pythonic.main"]

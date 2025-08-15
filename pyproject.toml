@@ -1,57 +1,51 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "crossplane-function-pythonic"
+version = "0.0.6"
 description = 'A Python centric Crossplane Function'
 readme = "README.md"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.14"
 license = "Apache-2.0"
 keywords = []
-authors = [{ name = "Crossplane Maintainers", email = "info@crossplane.io" }]
+authors = [{ name = "Patrick J McNerthney", email = "pat@mcnerthney.com" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 
 dependencies = [
   "crossplane-function-sdk-python==0.9.0",
+  "kopf==1.38.0",
   "pyyaml==6.0.2",
 ]
-
-dynamic = ["version"]
 
 [project.urls]
 Documentation = "https://github.com/fortra/function-pythonic#readme"
 Issues = "https://github.com/fortra/function-pythonic/issues"
 Source = "https://github.com/fortra/function-pythonic"
 
-[project.scripts]
-pythonic = "crossplane.pythonic.main:main"
-
-[tool.hatch.build.targets.wheel]
-packages = ["crossplane"]
-
-[tool.hatch.version]
-path = "crossplane/pythonic/__version__.py"
-validate-bump = false            # Allow going from 0.0.0.dev0+x to 0.0.0.dev0+y.
+[tool.setuptools]
+packages = ["crossplane.pythonic"]
+py-modules = []
 
 [tool.hatch.envs.default]
 type = "virtual"
 path = ".venv-default"
 dependencies = ["ipython==9.1.0"]
+packages = ["crossplane"]
 [tool.hatch.envs.default.scripts]
-development = "python -m crossplane.pythonic.main --insecure --debug"
 production = "python -m crossplane.pythonic.main --insecure"
+development = "python -m crossplane.pythonic.main --insecure --debug"
+packages = "python -m crossplane.pythonic.main --insecure --debug --packages"
 
 [tool.hatch.envs.lint]
 type = "virtual"
 detached = true
 path = ".venv-lint"
 dependencies = ["ruff==0.11.5"]
+packages = ["crossplane"]
 [tool.hatch.envs.lint.scripts]
 check = "ruff check crossplane tests && ruff format --diff crossplane tests"
 
@@ -63,10 +57,11 @@ dependencies = [
   "pytest-asyncio==1.1.0",
   "pytest-cov==6.2.1",
 ]
+packages = ["crossplane"]
 [tool.hatch.envs.test.scripts]
-all = "pytest tests/ --verbose --verbose --cov --cov-report=term --cov-report=html:reports"
-protobuf = "pytest tests/test_protobuf*.py --verbose --verbose --cov --cov-report=term --cov-report=html:reports"
-ci = "pytest tests --verbose --verbose --junitxml=reports/pytest-junit.xml --cov --cov-report=term --cov-report=xml:reports/pytest-coverage.xml"
+all = "python -m pytest tests/ --verbose --verbose --cov --cov-report=term --cov-report=html:reports"
+protobuf = "python -m pytest tests/test_protobuf*.py --verbose --verbose --cov --cov-report=term --cov-report=html:reports"
+ci = "python -m pytest tests --verbose --verbose --junitxml=reports/pytest-junit.xml --cov --cov-report=term --cov-report=xml:reports/pytest-coverage.xml"
 
 [tool.ruff]
 target-version = "py311"

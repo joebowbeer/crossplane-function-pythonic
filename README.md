@@ -181,7 +181,7 @@ The BaseComposite class provides the following fields for manipulating the Compo
 | self.status | Map | The composite desired and observed status, read from observed if not in desired |
 | self.conditions | Conditions | The composite desired and observed conditions, read from observed if not in desired |
 | self.connection | Connection | The composite desired and observed connection detials, read from observed if not in desired |
-| self.results | Results | Returned results on the Composite and optionally on the Claim |
+| self.events | Events | Returned events against the Composite and optionally on the Claim |
 | self.ready | Boolean | The composite desired ready state |
 
 The BaseComposite also provides access to the following Crossplane Function level features:

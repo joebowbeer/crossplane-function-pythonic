@@ -37,6 +37,12 @@ request:
           self.status.dummy = 'cool-status'
 
 response:
+  context:
+    _requireds:
+      bucket:
+        apiVersion: s3.aws.upbound.io/v1beta1
+        kind: Bucket
+        matchName: my-awesome-dev-bucket
   requirements:
     extra_resources:
       bucket:
@@ -65,3 +71,4 @@ response:
                   name: my-awesome-dev-bucket-bucket
                 data:
                   bucket: random-bucket-id
+  conditions: null

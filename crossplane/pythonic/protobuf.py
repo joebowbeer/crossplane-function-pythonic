@@ -22,10 +22,10 @@ import yaml
 
 
 def Map(**kwargs):
-    return Values(None, None, google.protobuf.struct_pb2.Struct(), Values.Type.MAP)(**kwargs)
+    return Values(None, None, None, Values.Type.MAP)(**kwargs)
 
 def List(*args):
-    return Values(None, None, google.protobuf.struct_pb2.ListValue(), Values.Type.LIST)(*args)
+    return Values(None, None, None, Values.Type.LIST)(*args)
 
 def Unknown():
     return Values(None, None, None, Values.Type.UNKNOWN)
@@ -355,7 +355,7 @@ class RepeatedMessage:
             message = None
         else:
             message = self._messages[key]
-        value = Message(self._parent, key, self._descriptor, message, self._readOnly)
+        value = Message(self, key, self._descriptor, message, self._readOnly)
         self._cache[key] = value
         return value
 
@@ -686,7 +686,10 @@ class Values:
             if len(args):
                 raise ValueError('Connect specify args on maps')
             if self._values is None:
-                self.__dict__['_values'] = self._parent._create_child(self._key, self._type)
+                if self._parent is None:
+                    self.__dict__['_values'] = google.protobuf.struct_pb2.Struct()
+                else:
+                    self.__dict__['_values'] = self._parent._create_child(self._key, self._type)
             self._values.Clear()
             for key, value in kwargs.items():
                 self[key] = value
@@ -698,7 +701,10 @@ class Values:
             if len(kwargs):
                 raise ValueError('Connect specify kwargs on lists')
             if self._values is None:
-                self.__dict__['_values'] = self._parent._create_child(self._key, self._type)
+                if self._parent is None:
+                    self.__dict__['_values'] = google.protobuf.struct_pb2.ListValue()
+                else:
+                    self.__dict__['_values'] = self._parent._create_child(self._key, self._type)
             self._values.Clear()
             for key in range(len(args)):
                 self[key] = args[key]
@@ -774,7 +780,7 @@ class Values:
                             break
                         del values[ix]
         else:
-            raise ValueError('Unexpected type')
+            raise ValueError(f"Unexpected type: {value.__class__}")
 
     def __delattr__(self, key):
         del self[key]

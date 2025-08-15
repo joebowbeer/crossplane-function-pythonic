@@ -63,7 +63,7 @@ response:
             forProvider:
               serverId: abcdef
   conditions:
-  - type: NoUnknowns
+  - type: ResourcesComposed
     status: 3
     reason: ObservedUnknowns
     message: 'Observed resources with unknowns: flexServerConfig'

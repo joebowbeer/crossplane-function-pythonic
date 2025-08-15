@@ -45,11 +45,11 @@ response:
             forProvider:
               storageMb: 32768
   conditions:
-  - type: NoUnknowns
+  - type: ResourcesComposed
     status: 3
-    reason: NewUnknowns
-    message: 'New resources with unknowns: flexServerConfig'
+    reason: DesiredUnknowns
+    message: 'Desired resources with unknowns: flexServerConfig'
   results:
-  - message: 'New resources with unknowns: flexServerConfig'
-    reason: NewUnknowns
+  - message: 'Desired resources with unknowns: flexServerConfig'
+    reason: DesiredUnknowns
     severity: 3
