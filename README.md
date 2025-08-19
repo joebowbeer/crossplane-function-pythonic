@@ -35,8 +35,12 @@ spec:
             vpc.spec.forProvider.cidrBlock = self.spec.cidr
             self.status.vpcId = vpc.status.atProvider.vpcId
 ```
+
 In addtion to an inline script, the python implementation can be specified
-as the complete path to a python class. See [Filing system Composites](#filing-system-composites).
+as the complete path to a python class. Python packages can be deployed using
+ConfigMaps or Secrets enabling the use of your IDE of choice for writting
+the code. See [ConfigMap and Secret Packages](#configmap-and-secret-packages)
+and [Filing System Packages](#filing-system-packages).
 
 ## Examples
 
@@ -297,7 +301,143 @@ spec:
         self.status.composite = 'Hello, World!'
 ```
 
-## Filing system Composites
+## ConfigMap and Secret Packages
+
+ConfigMap and Secret based python packages are enable using the `--packages`
+and `--packages-namespace` command line options. ConfigMaps and Secrets
+with the label `function-pythonic.package` will be incorporated in the python
+path at the location configured in the label value. For example, the following
+ConfigMap will enable python to use `import example.pythonic.features`
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: crossplane-system
+  name: example-pythonic
+  labels:
+    function-pythonic.package: example.pythonic
+data:
+  features.py: |
+    def anything():
+        return 'something'
+```
+Then, in your Composition:
+```yaml
+    ...
+    - step: pythonic
+    functionRef:
+      name: function-pythonic
+    input:
+      apiVersion: pythonic.fn.fortra.com/v1alpha1
+      kind: Composite
+      composite: |
+        from example.pythonic import features
+        class Composite(BaseComposite):
+            def compose(self):
+                anything = features.anything()
+    ...
+```
+The entire function-pythonic Composite class can be coded in the ConfigMap and
+the only the complete path is needed in the step configuration.
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: crossplane-system
+  name: example-pythonic
+  labels:
+    function-pythonic.package: example.pythonic
+data:
+  features.py: |
+    from crossplane.pythonic import BaseComposite
+    class FeatureOneComposite(BaseComposite):
+        def compose(self):
+            # go at it!
+```
+```yaml
+    ...
+    - step: pythonic
+    functionRef:
+      name: function-pythonic
+    input:
+      apiVersion: pythonic.fn.fortra.com/v1alpha1
+      kind: Composite
+      composite: example.pythonic.features.FeatureOneComposite
+    ...
+```
+This requires enabling the the packages support using the `--packages` command
+line option in the DeploymentRuntimeConfig and configuring the required
+Kubernetes RBAC permissions. For example:
+```yaml
+apiVersion: pkg.crossplane.io/v1
+kind: Function
+metadata:
+  name: function-pythonic
+spec:
+  package: ghcr.io/fortra/function-pythonic:v0.0.6
+  runtimeConfigRef:
+    name: function-pythonic
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: function-pythonic
+spec:
+  deploymentTemplate:
+    spec:
+      selector: {}
+      template:
+        spec:
+          containers:
+          - name: package-runtime
+            args:
+            - --debug
+            - --packages
+          serviceAccountName: function-pythonic
+  serviceAccountTemplate:
+    metadata:
+      name: function-pythonic
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: function-pythonic
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - events
+  verbs:
+  - create
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  - secrets
+  verbs:
+  - list
+  - watch
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: function-pythonic
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: function-pythonic
+subjects:
+- kind: ServiceAccount
+  namespace: crossplane-system
+  name: function-pythonic
+```
+When enabled, labeled ConfigMaps and Secrets are obtained cluster wide,
+requiring the above ClusterRole permissions. The `--packages-name` command
+line option will restrict to only using the supplied namespaces. Per namespace
+RBAC permissions are then required.
+
+## Filing System Packages
 
 Composition Composite implementations can be coded in a stand alone python files
 by configuring the function-pythonic deployment with the code mounted into

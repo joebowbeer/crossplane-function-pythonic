@@ -56,7 +56,7 @@ async def update(body, old, logger, **_):
         for name, text in body.get('data', {}).items():
             package_file = package_dir / name
             if package_dir == old_package_dir and text == old_data.get(name, None):
-                action = 'Same'
+                action = 'Unchanged'
             else:
                 if secret:
                     package_file.write_bytes(base64.b64decode(text.encode('utf-8')))
@@ -65,7 +65,7 @@ async def update(body, old, logger, **_):
                 action = 'Updated' if package_dir == old_package_dir and name in old_names else 'Created'
             if package_file.suffixes == ['.py']:
                 module = '.'.join(package + [package_file.stem])
-                if action != 'Same':
+                if action != 'Unchanged':
                     GRPC_RUNNER.invalidate_module(module)
                 logger.info(f"{action} module: {module}")
             else:
