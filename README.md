@@ -38,9 +38,9 @@ spec:
 
 In addtion to an inline script, the python implementation can be specified
 as the complete path to a python class. Python packages can be deployed using
-ConfigMaps or Secrets enabling the use of your IDE of choice for writting
-the code. See [ConfigMap and Secret Packages](#configmap-and-secret-packages)
-and [Filing System Packages](#filing-system-packages).
+ConfigMaps, enabling using your IDE of choice for writting the code. See
+[ConfigMap Packages](#configmap-packages) and
+[Filing System Packages](#filing-system-packages).
 
 ## Examples
 
@@ -57,7 +57,7 @@ kind: Function
 metadata:
   name: function-pythonic
 spec:
-  package: ghcr.io/fortra/function-pythonic:v0.0.3
+  package: ghcr.io/fortra/function-pythonic:v0.0.7
 ```
 
 ## Composed Resource Dependencies
@@ -301,12 +301,12 @@ spec:
         self.status.composite = 'Hello, World!'
 ```
 
-## ConfigMap and Secret Packages
+## ConfigMap Packages
 
-ConfigMap and Secret based python packages are enable using the `--packages`
-and `--packages-namespace` command line options. ConfigMaps and Secrets
-with the label `function-pythonic.package` will be incorporated in the python
-path at the location configured in the label value. For example, the following
+ConfigMap based python packages are enable using the `--packages` and
+`--packages-namespace` command line options. ConfigMaps with the label
+`function-pythonic.package` will be incorporated in the python path at
+the location configured in the label value. For example, the following
 ConfigMap will enable python to use `import example.pythonic.features`
 ```yaml
 apiVersion: v1
@@ -338,7 +338,7 @@ Then, in your Composition:
     ...
 ```
 The entire function-pythonic Composite class can be coded in the ConfigMap and
-the only the complete path is needed in the step configuration.
+only the complete Composite class path is needed in the step configuration.
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -374,7 +374,7 @@ kind: Function
 metadata:
   name: function-pythonic
 spec:
-  package: ghcr.io/fortra/function-pythonic:v0.0.6
+  package: ghcr.io/fortra/function-pythonic:v0.0.7
   runtimeConfigRef:
     name: function-pythonic
 ---
@@ -413,7 +413,6 @@ rules:
   - ''
   resources:
   - configmaps
-  - secrets
   verbs:
   - list
   - watch
@@ -432,10 +431,14 @@ subjects:
   namespace: crossplane-system
   name: function-pythonic
 ```
-When enabled, labeled ConfigMaps and Secrets are obtained cluster wide,
-requiring the above ClusterRole permissions. The `--packages-name` command
-line option will restrict to only using the supplied namespaces. Per namespace
-RBAC permissions are then required.
+When enabled, labeled ConfigMaps are obtained cluster wide, requiring the above
+ClusterRole permissions. The `--packages-namespace` command line option will restrict
+to only using the supplied namespace. This option can be invoked multiple times.
+The above RBAC permission can then be per namespace RBAC Role permissions.
+
+Secrets can also be used in an identical manner as ConfigMaps by enabling the
+`--packages-secrets` command line option. Secrets permissions need to be
+added to the above RBAC configuration.
 
 ## Filing System Packages
 

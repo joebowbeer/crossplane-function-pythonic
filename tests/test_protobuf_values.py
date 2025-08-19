@@ -34,6 +34,15 @@ def test_list():
     assert value
     assert len(value) == 1
     assert value[0] == 1
+    value[protobuf.append] = 2
+    assert len(value) == 2
+    assert value[0] == 1
+    assert value[1] == 2
+    assert value[-2] == 1
+    assert value[-1] == 2
+    value[-1] = 3
+    assert len(value) == 2
+    assert value[1] == 3
 
 def test_unkown():
     value = protobuf.Unknown()

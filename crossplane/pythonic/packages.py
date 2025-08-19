@@ -1,25 +1,51 @@
 
 import base64
 import importlib
+import logging
 import pathlib
 import sys
 
 import kopf
 
 
+PACKAGE_LABEL = {'function-pythonic.package': kopf.PRESENT}
 PACKAGES_DIR = None
+GRPC_SERVER = None
 GRPC_RUNNER = None
 
-def setup(packages_dir, packages_runner):
-    global PACKAGES_DIR, GRPC_RUNNER
+
+def operator(packages_secrets, packages_namespace, packages_dir, grpc_server, grpc_runner):
+    logging.getLogger('kopf.objects').setLevel(logging.INFO)
+    global PACKAGES_DIR, GRPC_SERVER, GRPC_RUNNER
     PACKAGES_DIR = packages_dir
-    GRPC_RUNNER = packages_runner
+    GRPC_SERVER = grpc_server
+    GRPC_RUNNER = grpc_runner
+    PACKAGES_DIR = pathlib.Path(packages_dir).expanduser().resolve()
+    sys.path.insert(0, str(PACKAGES_DIR))
+    if packages_secrets:
+        kopf.on.create('', 'v1', 'secrets', labels=PACKAGE_LABEL)(create)
+        kopf.on.resume('', 'v1', 'secrets', labels=PACKAGE_LABEL)(create)
+        kopf.on.update('', 'v1', 'secrets', labels=PACKAGE_LABEL)(update)
+        kopf.on.delete('', 'v1', 'secrets', labels=PACKAGE_LABEL)(delete)
+    return kopf.operator(
+        standalone=True,
+        clusterwide=not packages_namespace,
+        namespaces=packages_namespace,
+    )
 
 
-@kopf.on.create('', 'v1', 'configmaps', labels={'function-pythonic.package': kopf.PRESENT})
-@kopf.on.resume('', 'v1', 'configmaps', labels={'function-pythonic.package': kopf.PRESENT})
-@kopf.on.create('', 'v1', 'secrets', labels={'function-pythonic.package': kopf.PRESENT})
-@kopf.on.resume('', 'v1', 'secrets', labels={'function-pythonic.package': kopf.PRESENT})
+@kopf.on.startup()
+async def startup(settings, **_):
+    settings.scanning.disabled = True
+
+
+@kopf.on.cleanup()
+async def cleanup(**_):
+    await GRPC_SERVER.stop(5)
+
+
+@kopf.on.create('', 'v1', 'configmaps', labels=PACKAGE_LABEL)
+@kopf.on.resume('', 'v1', 'configmaps', labels=PACKAGE_LABEL)
 async def create(body, logger, **_):
     package_dir, package = get_package_dir(body)
     if package_dir:
@@ -40,8 +66,7 @@ async def create(body, logger, **_):
                 logger.info(f"Created file: {'/'.join(package + [name])}")
 
 
-@kopf.on.update('', 'v1', 'configmaps', labels={'function-pythonic.package': kopf.PRESENT})
-@kopf.on.update('', 'v1', 'secrets', labels={'function-pythonic.package': kopf.PRESENT})
+@kopf.on.update('', 'v1', 'configmaps', labels=PACKAGE_LABEL)
 async def update(body, old, logger, **_):
     old_package_dir, old_package = get_package_dir(old)
     if old_package_dir:
@@ -91,8 +116,7 @@ async def update(body, old, logger, **_):
             old_package.pop()
 
 
-@kopf.on.delete('', 'v1', 'configmaps', labels={'function-pythonic.package': kopf.PRESENT})
-@kopf.on.delete('', 'v1', 'secrets', labels={'function-pythonic.package': kopf.PRESENT})
+@kopf.on.delete('', 'v1', 'configmaps', labels=PACKAGE_LABEL)
 async def delete(old, logger, **_):
     package_dir, package = get_package_dir(old)
     if package_dir:

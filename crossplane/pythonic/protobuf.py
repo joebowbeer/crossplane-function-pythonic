@@ -18,7 +18,10 @@
 import datetime
 import google.protobuf.struct_pb2
 import json
+import sys
 import yaml
+
+append = sys.maxsize
 
 
 def Map(**kwargs):
@@ -442,6 +445,10 @@ class RepeatedMessage:
             raise ValueError(f"{self._readOnly} is read only")
         if self._messages is None:
             self._messages = self._parent._create_child(self._key)
+        if key == append:
+            key = len(self._messages)
+        elif key < 0:
+            key = len(self._messages) + key
         while key >= len(self._messages):
             self._messages.add()
         if isinstance(message, Message):
@@ -738,6 +745,10 @@ class Values:
                 else:
                     self.__dict__['_values'] = self._parent._create_child(self._key, self._type)
             values = self._values.values
+            if key == append:
+                key = len(values)
+            elif key < 0:
+                key = len(values) + key
             while key >= len(values):
                 values.add()
         else:

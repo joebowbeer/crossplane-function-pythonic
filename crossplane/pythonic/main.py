@@ -13,10 +13,9 @@ import traceback
 import crossplane.function.logging
 import crossplane.function.proto.v1.run_function_pb2_grpc as grpcv1
 import grpc
-import kopf
 import pip._internal.cli.main
 
-from . import function, packages
+from . import function
 
 
 def main():
@@ -36,6 +35,12 @@ class Main:
             help='Emit debug logs.',
         )
         parser.add_argument(
+            '--log-name-width',
+            type=int,
+            default=40,
+            help='Width of the logger name in the log output, default 40',
+        )
+        parser.add_argument(
             '--address',
             default='0.0.0.0:9443',
             help='Address at which to listen for gRPC connections, default: 0.0.0.0:9443',
@@ -53,7 +58,12 @@ class Main:
         parser.add_argument(
             '--packages',
             action='store_true',
-            help='Discover python packages from function-pythonic ConfigMaps and Secrets.'
+            help='Discover python packages from function-pythonic ConfigMaps.'
+        )
+        parser.add_argument(
+            '--packages-secrets',
+            action='store_true',
+            help='Also Discover python packages from function-pythonic Secrets.'
         )
         parser.add_argument(
             '--packages-namespace',
@@ -122,21 +132,15 @@ class Main:
         await grpc_server.start()
 
         if args.packages:
-            packages_dir = pathlib.Path(args.packages_dir).expanduser().resolve()
-            sys.path.insert(0, str(packages_dir))
-            packages.setup(packages_dir, grpc_runner)
-            @kopf.on.startup()
-            async def startup(settings, **_):
-                settings.scanning.disabled = True
-            @kopf.on.cleanup()
-            async def cleanup(logger=None, **_):
-                await grpc_server.stop(5)
+            from . import packages
             async with asyncio.TaskGroup() as tasks:
                 tasks.create_task(grpc_server.wait_for_termination())
-                tasks.create_task(kopf.operator(
-                    standalone=True,
-                    clusterwide=not args.packages_namespace,
-                    namespaces=args.packages_namespace,
+                tasks.create_task(packages.operator(
+                    args.packages_secrets,
+                    args.packages_namespace,
+                    args.packages_dir,
+                    grpc_server,
+                    grpc_runner,
                 ))
         else:
             def stop():
@@ -147,14 +151,12 @@ class Main:
             await grpc_server.wait_for_termination()
 
     def configure_logging(self, args):
-        formatter = Formatter(30)
+        formatter = Formatter(args.log_name_width)
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         logger = logging.getLogger()
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
-        if args.debug:
-            logging.getLogger('kopf.objects').setLevel(logging.INFO)
 
 
 class Formatter(logging.Formatter):
@@ -172,12 +174,11 @@ class Formatter(logging.Formatter):
         if extra > 0:
             names = record.sname.split('.')
             for ix, name in enumerate(names):
-                if len(name) <= extra:
-                    names[ix] = name[:1]
-                    extra -= len(name) - 1
-                else:
+                if len(name) > extra:
                     names[ix] = name[extra:]
                     break
+                names[ix] = name[:1]
+                extra -= len(name) - 1
             record.sname = '.'.join(names)
         return super(Formatter, self).format(record)
 

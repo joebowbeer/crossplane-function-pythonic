@@ -15,6 +15,7 @@ from crossplane.function.proto.v1 import run_function_pb2_grpc as grpcv1
 from .. import pythonic
 
 builtins.BaseComposite = pythonic.BaseComposite
+builtins.append = pythonic.append
 builtins.Map = pythonic.Map
 builtins.List = pythonic.List
 builtins.Unknown = pythonic.Unknown
